@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-deployment
+  labels:
+    app: validation-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: validation-service
+  template:
+    metadata:
+      labels:
+        app: validation-service
+    spec:
+      containers:
+        - name: validation-service
+          image: ey/cicd-k8s-validation:latest
+          ports:
+            - containerPort: 9081
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: validation-service
+spec:
+  selector:
+    app: validation-service
+  ports:
+    - port: 9081
+      targetPort: 9081
+      nodePort: 30008
+  type: LoadBalancer
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: validation-pdb
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: validation-service
